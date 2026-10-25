@@ -23,21 +23,13 @@ nav a{flex:1;text-align:center;padding:12px 4px;color:var(--mu);font-weight:600;
 .tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:6px;border-bottom:1px solid var(--bd);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}
 .mo td{font-weight:700;background:var(--bg)}.mu{color:var(--mu);font-size:13px}.rd{color:var(--rd)}
 .md{position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;padding:14px;z-index:9}.md>div{background:var(--card);border-radius:12px;padding:14px;max-width:520px;width:100%;max-height:90%;overflow:auto}.md img{max-width:100%}
-</style><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script></head><body><main id="app"></main>
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script></head><body><main id="app"><p style="padding:16px;color:var(--mu)">Cargando…</p></main>
 <nav><a id="n-home" onclick="go('home')">Inicio</a><a id="n-loans" onclick="go('loans')">Préstamos</a><a id="n-cfg" onclick="go('cfg')">Configuración</a></nav>
 <div id="login" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:50;align-items:center;justify-content:center;padding:16px"><div class="card" style="max-width:340px;width:100%"><h2 style="margin-top:0">Control de préstamos</h2><label>Correo</label><input id="lu" type="email" autocomplete="username"><label>Contraseña</label><input id="lp" type="password" autocomplete="current-password" onkeydown="if(event.key=='Enter')entrar()"><div id="le" class="rd mu"></div><button onclick="entrar()">Entrar</button></div></div>
 <script src="config.js"></script>
-<script>const _ok=window.SB_URL&&window.SB_KEY&&!String(window.SB_URL).includes('PEGA_AQUI')&&!String(window.SB_KEY).includes('PEGA_AQUI');
+<script>function _err(t){let e=document.getElementById('errbar');if(!e){e=document.createElement('div');e.id='errbar';e.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99;background:#b42318;color:#fff;padding:10px;font-size:13px';document.body.appendChild(e)}e.textContent=t}
+window.addEventListener('error',e=>_err('Error: '+e.message+' ('+String(e.filename||'').split('/').pop()+':'+e.lineno+')'));
+const _ok=window.SB_URL&&window.SB_KEY&&!String(window.SB_URL).includes('PEGA_AQUI')&&!String(window.SB_KEY).includes('PEGA_AQUI');
 const _L=()=>document.getElementById('login'),_msg=t=>{const e=document.getElementById('le');if(e)e.textContent=t};
 if(_ok){try{window.sb=window.supabase.createClient(window.SB_URL,window.SB_KEY)}catch(e){}}
 async function bootStart(){_L().style.display='flex';
-if(!window.sb){_msg('Falta configurar config.js (URL y clave de Supabase).');return}
-try{const {data:{session}}=await window.sb.auth.getSession();if(!session)return;
-let {data,error}=await window.sb.from('prestamos_datos').select('json,version').eq('id',1).maybeSingle();if(error){_msg('Error al cargar: '+error.message);return}
-if(!data){const r=await window.sb.from('prestamos_datos').insert({id:1,json:{fondo:0,banks:[],clientes:[],loans:[],ancla:''},version:1}).select('json,version').single();if(r.error){_msg('Esta cuenta no tiene acceso a esta aplicación.');await window.sb.auth.signOut();return}data=r.data}
-window.__INIT=data.json;window.__VER=data.version;_L().style.display='none';
-const s=document.createElement('script');s.src='app.js';document.body.appendChild(s)}catch(e){_msg('Error: '+e.message)}}
-async function entrar(){if(!window.sb)return _msg('Falta configurar config.js');const {error}=await window.sb.auth.signInWithPassword({email:document.getElementById('lu').value.trim(),password:document.getElementById('lp').value});if(error){_msg('Correo o contraseña incorrectos');return}bootStart()}
-bootStart();
-</script>
-</body></html>
