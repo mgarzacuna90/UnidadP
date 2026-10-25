@@ -32,4 +32,18 @@ window.addEventListener('error',e=>_err('Error: '+e.message+' ('+String(e.filena
 const _ok=window.SB_URL&&window.SB_KEY&&!String(window.SB_URL).includes('PEGA_AQUI')&&!String(window.SB_KEY).includes('PEGA_AQUI');
 const _L=()=>document.getElementById('login'),_msg=t=>{const e=document.getElementById('le');if(e)e.textContent=t};
 if(_ok){try{window.sb=window.supabase.createClient(window.SB_URL,window.SB_KEY)}catch(e){}}
+const _parts=['app1.js','app2.js','app3.js','app4.js'];
+function _load(i){if(i>=_parts.length){if(typeof go!=='function')_err('La aplicación no arrancó.');return}const s=document.createElement('script');s.src=_parts[i]+'?v='+Date.now();s.onload=()=>_load(i+1);s.onerror=()=>_err('No se pudo cargar '+_parts[i]+'. Revisa que esté subido con ese nombre exacto.');document.body.appendChild(s)}
 async function bootStart(){_L().style.display='flex';
+if(!window.sb){_msg('Falta configurar config.js (URL y clave de Supabase).');return}
+try{const {data:{session}}=await window.sb.auth.getSession();if(!session)return;
+let {data,error}=await window.sb.from('prestamos_datos').select('json,version').eq('id',1).maybeSingle();if(error){_msg('Error al cargar: '+error.message);return}
+if(!data){const r=await window.sb.from('prestamos_datos').insert({id:1,json:{fondo:0,banks:[],clientes:[],loans:[],ancla:''},version:1}).select('json,version').single();if(r.error){_msg('Esta cuenta no tiene acceso a esta aplicación.');await window.sb.auth.signOut();return}data=r.data}
+window.__INIT=data.json;window.__VER=data.version;_L().style.display='none';
+_load(0)}catch(e){_msg('Error: '+e.message)}}
+async function entrar(){if(!window.sb)return _msg('Falta configurar config.js');const {error}=await window.sb.auth.signInWithPassword({email:document.getElementById('lu').value.trim(),password:document.getElementById('lp').value});if(error){_msg('Correo o contraseña incorrectos');return}bootStart()}
+window.addEventListener('unhandledrejection',e=>_err('Error: '+((e.reason&&e.reason.message)||e.reason)));
+setTimeout(()=>{const a=document.getElementById('app');if(a&&a.textContent.includes('Cargando')&&document.getElementById('login').style.display!=='flex')_err('La app no terminó de cargar. Recarga la página y, si sigue igual, manda una captura.')},10000);
+bootStart().catch(e=>_err('Error al iniciar: '+e.message));
+</script>
+</body></html>
