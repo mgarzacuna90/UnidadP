@@ -39,3 +39,6 @@ return`<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><butt
 <button class="s" style="display:block;width:100%;margin:12px 0 0;padding:12px" onclick="go('loan:ab:${l.id}')">Editar abonos (${l.pagos.length})</button>
 <button class="r" style="margin-top:14px" onclick="delL('${l.id}')">Eliminar préstamo</button>`}
 function abonosV(id){const l=S.loans.find(x=>x.id==id);if(!l)return loans();const s=st(l);return`<button class="s" style="margin:0" onclick="goBack('loan:${id}')">← Volver</button><h2>Abonos de ${esc(cli(l.cid).nombre)}</h2><div class="card">${l.pagos.slice().sort((a,b)=>a.fecha<b.fecha?1:-1).map(p=>`<div class="row"><div>${D(P(p.fecha))} · <b>${M(p.monto)}</b><div class="mu">${alt(s,p)}</div></div><div>${p.img?`<button class="s" onclick="ver('${l.id}','${p.id}')">Ver</button>`:''}<button class="r" onclick="delP('${l.id}','${p.id}')">Eliminar</button></div></div>`).join('')||'<div class="mu">Sin abonos.</div>'}</div>`}
+function ordC(){S.clientes.sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre),'es',{sensitivity:'base'}))}
+const _r0=render;render=function(){ordC();_r0()};
+ordC();render();
