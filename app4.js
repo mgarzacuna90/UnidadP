@@ -83,3 +83,15 @@ const _cf0=cfg;cfg=function(){return _cf0().split('<h2>Reporte total</h2>').join
 const _dt0=detalle;detalle=function(id){return id==='hlog'?hlogV():_dt0(id)};
 const _r1=render;render=function(){_r1();if(V==='loan:hlog'){$('#n-loans').classList.remove('on');$('#n-cfg').classList.add('on')}};
 render();
+function liq(l){return P(l.fecha)<=today()&&st(l).debe<0.5}
+function atr(l,hoy=today()){const tr=TR(l),pg=l.pagos.filter(p=>P(p.fecha)<=hoy).slice().sort((a,b)=>a.fecha<b.fecha?-1:1),n=Math.max(0,Math.floor((hoy-P(l.fecha))/864e5/14)+1),ds=cats(P(l.fecha),n+1).filter(d=>d<=hoy);let k=0,cp=0,pend=0,ip=0;const L=[];
+const pay=p=>{const i=Math.min(p.monto,pend);pend-=i;ip+=i;cp+=p.monto-i};
+ds.forEach(d=>{while(k<pg.length&&P(pg[k].fecha)<d)pay(pg[k++]);const I=ia(d,tr,cp);pend+=I;L.push({d,I})});while(k<pg.length)pay(pg[k++]);
+let rem=ip,c=0;L.forEach(x=>{const cov=Math.min(rem,x.I);rem-=cov;if(x.I>0&&cov<x.I-0.01&&x.d<hoy)c++});return c}
+function rowL(l){const s=st(l),a=atr(l),cl=a>=2?'#ef4444':a==1?'#f97316':'',re=l.tr&&l.tr.length>1,ok=liq(l);
+return`<div class="row" onclick="go('loan:${l.id}')" style="cursor:pointer;${cl?'border-left:4px solid '+cl+';padding-left:8px;':''}"><div><b>${esc(cli(l.cid).nombre)}</b>${re?` <span style="font-size:12px;background:#facc15;color:#422006;border-radius:10px;padding:1px 7px;font-weight:600">Reestructurado${l.tr.length>2?' x'+(l.tr.length-1):''}</span>`:''}${ok?' <span style="font-size:12px;background:#16a34a;color:#fff;border-radius:10px;padding:1px 7px;font-weight:600">Liquidado</span>':''}${a&&!ok?` <span style="font-size:12px;color:${cl};font-weight:600">${a>=2?a+' pagos vencidos':'Atraso de 1 pago'}</span>`:''}<div class="mu">${M(l.monto)} · ${l.tasa}% c/2 catorcenas · ${D(P(l.fecha))}</div></div><div style="text-align:right"><div class="k">Debe</div><b${cl?` style="color:${cl}"`:''}>${M(s.debe)}</b></div></div>`}
+function loans(){const act=S.loans.filter(l=>!liq(l)),nl=S.loans.length-act.length;return`<h2>Préstamos</h2><div style="display:flex;gap:8px"><button style="flex:1;margin:0" onclick="go('new')">+ Crear préstamo</button><button class="s" style="flex:1;margin:0" onclick="go('loan:liq')">Liquidados (${nl})</button></div><div class="card" style="margin-top:10px">${act.map(rowL).join('')||'<div class="mu">Sin préstamos.</div>'}</div>`}
+function liqV(){const a=S.loans.filter(liq).sort((x,y)=>x.fecha<y.fecha?1:-1);return`<h2>Préstamos liquidados</h2><div class="card">${a.map(rowL).join('')||'<div class="mu">Aún no hay préstamos liquidados.</div>'}</div>`}
+const _dt1=detalle;detalle=function(id){if(id==='liq')return liqV();const h=_dt1(id),l=S.loans.find(x=>x.id==id);if(!l)return h;const a=atr(l);return liq(l)?h.replace('</h2>','</h2><div style="color:#16a34a;font-weight:700">Liquidado</div>'):a?h.replace('</h2>','</h2><div style="color:'+(a>=2?'#ef4444':'#f97316')+';font-weight:700">'+(a>=2?a+' pagos vencidos sin abono':'Atraso de 1 pago')+'</div>'):h};
+const _qa0=qAbono;qAbono=function(){const all=S.loans;S.loans=all.filter(l=>!liq(l));try{_qa0()}finally{S.loans=all}};
+render();
